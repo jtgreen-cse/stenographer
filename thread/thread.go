@@ -180,13 +180,14 @@ func (t *Thread) trackNewFile(filename string) error {
 }
 
 func (t *Thread) cleanUpOnLowDiskSpace() {
-	if len(t.files) == 0 {
-		return // cannot clean up files if we don't have any.
-	}
+
 	fido := base.Watchdog(time.Minute, "cleaning up low disk space")
 	defer fido.Stop()
 	for {
 		fido.Reset(time.Minute)
+		if len(t.files) == 0 {
+			return // cannot clean up files if we don't have any.
+		}
 		if len(t.files) > t.conf.MaxDirectoryFiles {
 			v(1, "Thread %v has too many files. %d > %d, deleting", t.id, len(t.files), t.conf.MaxDirectoryFiles)
 			t.deleteOldestThreadFiles(len(t.files)-t.conf.MaxDirectoryFiles, nil)
